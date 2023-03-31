@@ -1,0 +1,69 @@
+using gold.**
+
+procedure main(args:String[]) begin
+	
+	Q := {⟨a,b⟩ | a in {2,7}, 0 <= b < a} ∪ {"err", "final"}
+	
+	T := {'x','$'} ∪ ('0'‥'9')
+	
+	E := ('0'‥'9')
+	
+	q := ⟨2,0⟩
+	
+	F := {"final"}
+	
+	A:ITransducer := GDeterministicTransducer(Q,T,E,q,F,f,h,g)
+	
+	GAutomataFrame.show(A)
+	
+end
+
+function f(state, input) begin
+	if |state| = 2 then
+		if input = 'x' then
+			if state[0] = 2 then
+				return ⟨7,0⟩
+				
+			else
+				return ⟨2,0⟩
+				
+			end
+		elseif input = '$' then
+			return "final"
+			
+		else
+			num := Integer.valueOf(String.valueOf(input))
+			
+			return ⟨state[0], (state[1] + num)%state[0] ⟩
+			
+		end
+		
+	else
+		return "err"
+		
+	end
+end
+
+
+function g(state, input) begin
+	
+	if |state| = 2 then
+		
+		if input in {'x', '$'} then
+			return state[1].toString()
+			
+		else
+			return λ
+			
+		end
+		
+	else
+		return λ
+		
+	end
+	
+end
+
+function h(state) begin
+	return λ
+end

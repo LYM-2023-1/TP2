@@ -1,16 +1,20 @@
 
 using gold.**
-  
+//numeros utilizados en el TP
+//p1 = 13, k1 = 3
+//p2 = 19, k2 = 2
+//p3 = 23, k3 = 5
+//p4 = 31, k4 = 7
          
   
-var A
+var Z
 var B
 var C
 
 procedure main(args:String[]) begin
 	var sc:java.util.Scanner(System.$in)
     
-    A = ('a'‥'z')
+    Z = ('a'‥'z')
     B = ('0'‥'9')
     C= ('A'‥'Z')
 
@@ -41,8 +45,7 @@ procedure Decode(D:ITransducer) begin
 		
 			string:=sc.nextLine()
 			if string != 	λ then
-		       	result:=D.acceptsString(string)
-				print "El mensaje fue "+(result?"aceptado":"rechazado")+" por el decodificador. Salida: "+D.getOutputString()	
+				print "El mensaje fue aceptado"+" por el decodificador. Salida: "+D.getOutputString()	
 
 				
 			end
@@ -52,73 +55,69 @@ end
 
 
 function createDecoder():ITransducer begin
-	Q:= {⟨d,s,pos⟩ | d in {3,2,5}, s in ('a'‥'z'),pos in (0‥5)∪{"_"}  }  ∪ {3,2,5,"I","E"} 
-	Σ´ :=('a'‥'z')∪{ ':', '2', '3', '5'}
-	Σ:=Σ´∪{ '#'}
-	q₀:= "I"
-	F:=	 {⟨d,s,pos⟩ | d in {3,2,5}, s in ('a'‥'z'),0 <= pos < 5  }
-
-	return 	GDeterministicTransducer(Q,Σ,Σ´,q₀,F,δ1,g,h1)
+	Q := {⟨sc,b⟩ | sc in ('0'‥'9'), 0 <= b < sc} ∪ {"err", "final"}
+	
+	T := {'x','$'} ∪ ('0'‥'9')
+	
+	E := ('0'‥'9')
+	
+	q := ⟨2,0⟩
+	
+	F := {"final"}
+	
+	A:ITransducer := GDeterministicTransducer(Q,T,E,q,F,f,h,g)
+	
+	GAutomataFrame.show(A)
+	
 end
 
 	
+	function f(state, input) begin
+	if |state| = 2 then
+		if input = 'x' then
+			if state[0] = 2 then
+				return ⟨7,0⟩
+				
+			else
+				return ⟨2,0⟩
+				
+			end
+		elseif input = '$' then
+			return "final"
+			
+		else
+			num := Integer.valueOf(String.valueOf(input))
+			
+			return ⟨state[0], (state[1] + num)%state[0] ⟩
+			
+		end
+		
+	else
+		return "err"
+		
+	end
+end
+
+
+function g(state, input) begin
 	
+	if |state| = 2 then
+		
+		if input in {'x', '$'} then
+			return state[1].toString()
+			
+		else
+			return λ
+			
+		end
+		
+	else
+		return λ
+		
+	end
 	
-function δ1(state,input) begin
-  if state="I" and input in { '2', '3', '5'}  then return input - '0'
-  elseif state in {2,3,5} and input in ('a'‥'z') then return ⟨state, input,"_"⟩
-  else return "E"
-  end
-end
-// ------
-function δ1(⟨d,s,pos⟩,input) begin
-  if pos="_" and input = ':' then return ⟨d,s,1⟩
-  elseif pos="_"  then return "E"
-  elseif input = '#' and pos!=0 then return "E"
-  elseif input = s and pos =0 then return "E"
-  elseif input in ('a'‥'z')∪{'#'} then return ⟨d,s,(pos+1)%d⟩
-  else return "E"
-  end
 end
 
-
-
-	
-function h1(state,input) begin 
-  if state="I" and input in { '2', '3', '5'}  then return input-'0' 
-  elseif state in {2,3,5} and input in ('a'‥'z') then return input
-  else return λ
-  end
-end
-
-function h1(⟨d,s,pos⟩,input) begin
- 	if pos="_" and input = ':' then return input
-    elseif input = '#' and pos=0 then return s
- 	elseif input in ('a'‥'z') and pos=1 then return shiftSymbol(input,-d)
- 	elseif input in ('a'‥'z')  then return input
-   	else return λ
-  	end
-end
-
-
-
-function g(s) begin
+function h(state) begin
 	return λ
 end
-
-
- function shiftSymbol(symbol, shift) begin
-	var  r : Character
-   
-  	if symbol in ('a'‥'z') then
-	r:= 'a' + (symbol -'a'+ shift)% 26
-	elseif symbol in ('A'‥'Z') then
-	r:= 'A' + (symbol -'A'+ shift)% 26
-	elseif  symbol in ('0'‥'9') then
-	r:= '0' + (symbol -'0'+ shift)% 10
-	else r:= r
-	end		
-	return r
-end
-
-
